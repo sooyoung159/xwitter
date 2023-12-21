@@ -15,6 +15,7 @@ export default function Home() {
         <Link href="/i/flow/signup" className={styles.signup}>계정 만들기</Link>
         <h3>이미 트위터에 가입하셨나요?</h3>
         <Link href="/login" className={styles.login}>로그인</Link>
+        <div>이거 이렇게 하면 바로 추가할수잇나 ?</div>
       </div>
     </div>
   )
