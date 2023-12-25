@@ -1,11 +1,5 @@
-import React from 'react';
-
 const Tweet = () => {
-  return (
-    <div>
-      
-    </div>
-  );
+  return <div>게시글</div>;
 };
 
 export default Tweet;
