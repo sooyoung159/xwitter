@@ -1,5 +1,7 @@
+import Home from "@/app/(afterLogin)/home/page";
+
 const Tweet = () => {
-  return <div>게시글</div>;
+  return <Home />;
 };
 
 export default Tweet;
