@@ -3,27 +3,37 @@
 import style from "./trendSection.module.css";
 import Trend from "@/app/(afterLogin)/_component/Trend";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const TrendSection = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
   if (pathname === "/explore") return null;
-  return (
-    <div className={style.trendBg}>
-      <div className={style.trend}>
-        <h3>나를 위한 트렌드</h3>
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
-        <Trend />
+  if (session?.user) {
+    return (
+      <div className={style.trendBg}>
+        <div className={style.trend}>
+          <h3>나를 위한 트렌드</h3>
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+          <Trend />
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return (
+      <div className={style.trendBg}>
+        <div className={style.noTrend}>트렌드를 가져 올수 없습니다</div>
+      </div>
+    );
+  }
 };
 
 export default TrendSection;
