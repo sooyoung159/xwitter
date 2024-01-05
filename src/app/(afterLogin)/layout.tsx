@@ -10,6 +10,7 @@ import FollowRecommend from "@/app/(afterLogin)/_component/FollowRecommend";
 import RightSearchZone from "@/app/(afterLogin)/_component/RightSearchZone";
 import { auth } from "@/auth";
 import RQProvider from "@/app/(afterLogin)/_component/RQProvider";
+import FollowRecommendSection from "@/app/(afterLogin)/_component/FollowRecommendSection";
 
 interface Props {
   children: ReactNode;
@@ -53,9 +54,7 @@ const AfterLoginLayout = async ({ children, modal }: Props) => {
               <TrendSection />
               <div className={style.followRecommend}>
                 <h3>팔로우 추천</h3>
-                <FollowRecommend />
-                <FollowRecommend />
-                <FollowRecommend />
+                <FollowRecommendSection />
               </div>
             </section>
           </div>

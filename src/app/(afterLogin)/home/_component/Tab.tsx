@@ -1,10 +1,11 @@
 "use client";
 
 import style from "./tab.module.css";
-import { useState } from "react";
+import { useContext } from "react";
+import { TabContext } from "@/app/(afterLogin)/home/_component/TabProvider";
 
 const Tab = () => {
-  const [tab, setTab] = useState<"fol" | "rec">("rec");
+  const { tab, setTab } = useContext(TabContext);
   const onClickFol = () => {
     setTab("fol");
   };
