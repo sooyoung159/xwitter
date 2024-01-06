@@ -5,9 +5,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/ko";
 import ActionButtons from "@/app/(afterLogin)/_component/ActionButtons";
 import PostArticle from "@/app/(afterLogin)/_component/PostArticle";
-import { faker } from "@faker-js/faker";
 import { Post } from "@/model/Post";
-// import PostImages from "@/app/(afterLogin)/_component/PostImages";
+import PostImages from "@/app/(afterLogin)/_component/PostImages";
 
 dayjs.locale("ko");
 dayjs.extend(relativeTime);
@@ -18,14 +17,6 @@ type Props = {
 };
 const Post = ({ noImage, post }: Props) => {
   const target = post;
-  if (Math.random() > 0.5 && !noImage) {
-    target.Images.push(
-      { imageId: 1, link: faker.image.urlLoremFlickr() },
-      { imageId: 2, link: faker.image.urlLoremFlickr() },
-      { imageId: 3, link: faker.image.urlLoremFlickr() },
-      { imageId: 4, link: faker.image.urlLoremFlickr() },
-    );
-  }
 
   return (
     <PostArticle post={target}>
@@ -49,7 +40,7 @@ const Post = ({ noImage, post }: Props) => {
             </span>
           </div>
           <div>{target.content}</div>
-          <div>{/*<PostImages post={target} />*/}</div>
+          <div>{noImage && <PostImages post={target} />}</div>
           <ActionButtons />
         </div>
       </div>
