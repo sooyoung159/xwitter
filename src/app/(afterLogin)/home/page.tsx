@@ -14,6 +14,7 @@ const Home = async () => {
         <PostForm />
         <Suspense fallback={<Loading />}>
           <TabDeciderSuspense />
+            <div>TEST</div>
         </Suspense>
       </TabProvider>
     </main>
