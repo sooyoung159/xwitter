@@ -1,10 +1,10 @@
-import style from "./message.module.css";
+// import style from "./message.module.css";
 import Room from "@/app/(afterLogin)/messages/_component/Room";
 
 const Home = () => {
   return (
-    <main className={style.main}>
-      <div className={style.header}>
+    <main>
+      <div>
         <h3>쪽지</h3>
       </div>
       <Room />
