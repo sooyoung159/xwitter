@@ -2,23 +2,69 @@
 
 import style from "./posrForm.module.css";
 import { ChangeEventHandler, FormEventHandler, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { Session } from "@auth/core/types";
+import TextareaAutosize from "react-textarea-autosize";
 
-const PostForm = () => {
+interface Props {
+  me: Session | null;
+}
+
+const PostForm = ({ me }: Props) => {
   const imageRef = useRef<HTMLInputElement>(null);
   const [content, setContent] = useState<string>("");
-  const { data: me } = useSession();
-
+  const [preview, setPreview] = useState<
+    Array<{ dataUrl: string; file: File } | null>
+  >([]);
+  // const { data: me } = useSession();
   const onChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     setContent(e.target.value);
   };
 
-  const onSubmit: FormEventHandler = (e) => {
+  const onSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append("content", content);
+    preview.forEach((data) => {
+      data && formData.append("images", data?.file);
+    });
+
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+      method: "post",
+      credentials: "include",
+      body: formData,
+    });
   };
 
   const onClickButton = () => {
     imageRef.current?.click();
+  };
+
+  const onUpload: ChangeEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    if (e.target.files) {
+      Array.from(e.target.files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview((prevPreview) => {
+            const prev = [...prevPreview];
+            prev[index] = {
+              dataUrl: reader.result as string,
+              file,
+            };
+            return prev;
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const onRemoveImage = (index: number) => {
+    setPreview((prevPreview) => {
+      const prev = [...prevPreview];
+      prev[index] = null;
+      return prev;
+    });
   };
 
   return (
@@ -32,11 +78,34 @@ const PostForm = () => {
         </div>
       </div>
       <div className={style.postInputSection}>
-        <textarea
+        <TextareaAutosize
           value={content}
           onChange={onChange}
           placeholder="무슨 일이 일어나고 있나요?"
         />
+        <div style={{ display: "flex" }}>
+          {preview.map((image, index) => {
+            return (
+              image && (
+                <div
+                  key={index}
+                  style={{ flex: 1 }}
+                  onClick={() => onRemoveImage(index)}
+                >
+                  <img
+                    src={image.dataUrl}
+                    alt="미리보기"
+                    style={{
+                      width: "100%",
+                      objectFit: "contain",
+                      maxHeight: 100,
+                    }}
+                  />
+                </div>
+              )
+            );
+          })}
+        </div>
         <div className={style.postButtonSection}>
           <div className={style.footerButtons}>
             <div className={style.footerButtonLeft}>
@@ -46,6 +115,7 @@ const PostForm = () => {
                 multiple
                 hidden
                 ref={imageRef}
+                onChange={onUpload}
               />
               <button
                 className={style.uploadButton}

@@ -13,6 +13,7 @@ export const {
   providers: [
     CredentialsProvider({
       async authorize(credentials) {
+        console.log(`${process.env.AUTH_URL}/api/login`);
         const authResponse = await fetch(`${process.env.AUTH_URL}/api/login`, {
           method: "POST",
           headers: {
@@ -23,12 +24,15 @@ export const {
             password: credentials.password,
           }),
         });
+        console.log(authResponse.ok);
 
         if (!authResponse.ok) {
           return null;
         }
 
         const user = await authResponse.json();
+
+        console.log("user", user);
 
         return { id: user.id, image: user.image, name: user.nickname, ...user };
       },

@@ -5,18 +5,21 @@ import PostForm from "@/app/(afterLogin)/home/_component/PostForm";
 import TabDeciderSuspense from "@/app/(afterLogin)/home/_component/TabDeciderSuspense";
 import { Suspense } from "react";
 import Loading from "@/app/(afterLogin)/home/loading";
+import { auth } from "@/auth";
 
 const Home = async () => {
+  const session = await auth();
   return (
     <main className={style.main}>
       <TabProvider>
         <Tab />
-        <PostForm />
+        <PostForm me={session} />
         <Suspense fallback={<Loading />}>
           <TabDeciderSuspense />
-            <div>TEST</div>
+          <div>TEST</div>
         </Suspense>
       </TabProvider>
+      <div>tdst</div>
     </main>
   );
 };

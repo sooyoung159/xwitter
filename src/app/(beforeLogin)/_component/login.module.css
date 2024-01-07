@@ -47,7 +47,6 @@
     position: relative;
     margin: 12px 0;
 }
-
 .inputLabel {
     width: 100%;
     display: inline-block;
@@ -60,11 +59,9 @@
     padding: 8px 8px 0;
     color: rgb(83, 100, 113);
 }
-
 .inputLabel:focus-within {
     color: red;
 }
-
 .input {
     width: 100%;
     border: none;
@@ -88,13 +85,11 @@
     cursor: pointer;
     border: none;
 }
-
 .actionButton:disabled {
     opacity: 0.5;
 }
-
 .actionButton:hover {
-    background-color: rgb(39, 44, 48);
+    background-color: rgb(39,44,48);
 }
 
 .closeButton {
@@ -111,7 +106,13 @@
     align-items: center;
     justify-content: center;
 }
-
 .closeButton:hover {
-    background-color: rgba(15, 20, 25, 0.1);
+    background-color: rgba(15,20,25, 0.1);
+}
+
+.message {
+    color: red;
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
 }
