@@ -5,6 +5,7 @@ export const getFollowingPosts = async () => {
       next: {
         tags: ["posts", "followings"],
       },
+      credentials: "include",
     },
   );
 

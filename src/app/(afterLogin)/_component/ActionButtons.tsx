@@ -1,19 +1,138 @@
 "use client";
 import style from "./post.module.css";
 import cx from "classnames";
+import { MouseEventHandler } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Post } from "@/model/Post";
+import { useSession } from "next-auth/react";
+import { el } from "@faker-js/faker";
 
 interface Props {
   white?: boolean;
+  post: Post;
 }
 
-const ActionButtons = ({ white }: Props) => {
-  const commented = false;
-  const reposted = false;
-  const liked = false;
+const ActionButtons = ({ white, post }: Props) => {
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const commented = !!post.Comments.find(
+    (v) => v.userId === session?.user?.email,
+  );
+  const reposted = !!post.Reposts.find(
+    (v) => v.userId === session?.user?.email,
+  );
+  const liked = !!post.Hearts.find((v) => v.userId === session?.user?.email);
+  const { postId } = post;
 
+  console.log(session?.user);
+
+  const heartMutation = useMutation({
+    mutationFn: () => {
+      return fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}/heart`,
+        {
+          method: "post",
+          credentials: "include",
+        },
+      );
+    },
+    onMutate: () => {
+      const queryCache = queryClient.getQueryCache();
+      const queryKeys = queryCache.getAll().map((cache) => cache.queryKey);
+      queryKeys.forEach((queryKey) => {
+        if (queryKey[0] === "post") {
+          const value: Post | Post[] | undefined =
+            queryClient.getQueryData(queryKey);
+          if (Array.isArray(value)) {
+            const index = value.findIndex((item) => item.postId === postId);
+            if (index > -1) {
+              const shallow = [...value];
+              shallow[index] = {
+                ...shallow[index],
+                Hearts: [{ userId: session?.user?.email as string }],
+                _count: {
+                  ...shallow[index]._count,
+                  Hearts: shallow[index]._count.Hearts + 1,
+                },
+              };
+            }
+          } else if (value) {
+            if (value.postId === postId) {
+              const shallow = {
+                ...value,
+                Hearts: [{ userId: session?.user?.email as string }],
+                _count: {
+                  ...value._count,
+                  Hearts: value._count.Hearts + 1,
+                },
+              };
+            }
+          }
+        }
+      });
+    },
+  });
+
+  const unHeartMutation = useMutation({
+    mutationFn: () => {
+      return fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${postId}/heart`,
+        {
+          method: "delete",
+          credentials: "include",
+        },
+      );
+    },
+    onMutate: () => {
+      const queryCache = queryClient.getQueryCache();
+      const queryKeys = queryCache.getAll().map((cache) => cache.queryKey);
+      queryKeys.forEach((queryKey) => {
+        if (queryKey[0] === "post") {
+          const value: Post | Post[] | undefined =
+            queryClient.getQueryData(queryKey);
+          if (Array.isArray(value)) {
+            const index = value.findIndex((item) => item.postId === postId);
+            if (index > -1) {
+              const shallow = [...value];
+              shallow[index] = {
+                ...shallow[index],
+                Hearts: shallow[index].Hearts.filter(
+                  (v) => v.userId !== session?.user?.email,
+                ),
+                _count: {
+                  ...shallow[index]._count,
+                  Hearts: shallow[index]._count.Hearts - 1,
+                },
+              };
+            }
+          } else if (value) {
+            if (value.postId === postId) {
+              const shallow = {
+                ...value,
+                Hearts: value.Hearts.filter(
+                  (v) => v.userId !== session?.user?.email,
+                ),
+                _count: {
+                  ...value._count,
+                  Hearts: value._count.Hearts - 1,
+                },
+              };
+            }
+          }
+        }
+      });
+    },
+  });
   const onClickComment = () => {};
   const onClickRepost = () => {};
-  const onClickHeart = () => {};
+  const onClickHeart: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    if (liked) {
+      unHeartMutation.mutate();
+    } else {
+      heartMutation.mutate();
+    }
+  };
 
   return (
     <div className={style.actionButtons}>
@@ -31,7 +150,7 @@ const ActionButtons = ({ white }: Props) => {
             </g>
           </svg>
         </button>
-        <div className={style.count}>{1 || ""}</div>
+        <div className={style.count}>{post._count.Comments || ""}</div>
       </div>
       <div
         className={cx(
@@ -47,7 +166,7 @@ const ActionButtons = ({ white }: Props) => {
             </g>
           </svg>
         </button>
-        <div className={style.count}>{1 || ""}</div>
+        <div className={style.count}>{post._count.Reposts || ""}</div>
       </div>
       <div
         className={cx([
@@ -63,7 +182,7 @@ const ActionButtons = ({ white }: Props) => {
             </g>
           </svg>
         </button>
-        <div className={style.count}>{0 || ""}</div>
+        <div className={style.count}>{post._count.Hearts || ""}</div>
       </div>
     </div>
   );
