@@ -7,6 +7,7 @@ import {
 import UserPosts from "@/app/(afterLogin)/[username]/_component/UserPosts";
 import { getUser } from "@/app/(afterLogin)/[username]/_lib/getUser";
 import { getUserPosts } from "@/app/(afterLogin)/[username]/_lib/getUserPosts";
+import UserInfo from "@/app/(afterLogin)/[username]/_component/UserInfo";
 
 interface Props {
   params: { username: string };
@@ -28,6 +29,7 @@ const Profile = async ({ params }: Props) => {
   return (
     <main className={style.main}>
       <HydrationBoundary state={dehydratedState}>
+        <UserInfo username={username} />
         <div>
           <UserPosts username={username} />
         </div>

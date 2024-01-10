@@ -1,16 +1,19 @@
 "use client";
 import style from "@/app/(afterLogin)/[username]/profile.module.css";
 import BackButton from "@/app/(afterLogin)/_component/BackButton";
-import { useQuery } from "@tanstack/react-query";
-import { getUserPosts } from "@/app/(afterLogin)/[username]/_lib/getUserPosts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "@/model/User";
 import { getUser } from "@/app/(afterLogin)/[username]/_lib/getUser";
+import cx from "classnames";
+import { useSession } from "next-auth/react";
+import { MouseEventHandler } from "react";
 
 interface Props {
   username: string;
 }
 
 const UserInfo = ({ username }: Props) => {
+  const { data: session } = useSession();
   const { data: user, error } = useQuery<
     User,
     Object,
@@ -20,6 +23,175 @@ const UserInfo = ({ username }: Props) => {
     queryKey: ["users", username],
     queryFn: getUser,
     staleTime: 60 * 1000,
+  });
+  const queryClient = useQueryClient();
+
+  const followMutation = useMutation({
+    mutationFn: (userId: string) => {
+      return fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${userId}/follow`,
+        {
+          credentials: "include",
+          method: "post",
+        },
+      );
+    },
+    onMutate: (userId: string) => {
+      const value: User[] | undefined = queryClient.getQueryData([
+        "users",
+        "followRecommends",
+      ]);
+      if (value) {
+        const index = value.findIndex((v) => v.id === userId);
+        const shallow = [...value];
+        shallow[index] = {
+          ...shallow[index],
+          Followers: [{ id: session?.user?.email as string }],
+          _count: {
+            ...shallow[index]._count,
+            Followers: shallow[index]._count.Followers + 1,
+          },
+        };
+        queryClient.setQueryData(["users", "followRecommends"], shallow);
+      }
+      const value2: User | undefined = queryClient.getQueryData([
+        "users",
+        userId,
+      ]);
+      if (value2) {
+        const shallow = {
+          ...value2,
+          Followers: [{ id: session?.user?.email as string }],
+          _count: {
+            ...value2._count,
+            Followers: value2._count.Followers + 1,
+          },
+        };
+        queryClient.setQueryData(["users", userId], shallow);
+      }
+    },
+    onError: (err, userId) => {
+      const value: User[] | undefined = queryClient.getQueryData([
+        "users",
+        "followRecommends",
+      ]);
+      if (value) {
+        const index = value.findIndex((v) => v.id === userId);
+        const shallow = [...value];
+        shallow[index] = {
+          ...shallow[index],
+          Followers: shallow[index].Followers.filter(
+            (v) => v.id !== session?.user?.email,
+          ),
+          _count: {
+            ...shallow[index]._count,
+            Followers: shallow[index]._count.Followers - 1,
+          },
+        };
+        queryClient.setQueryData(["users", "followRecommends"], shallow);
+      }
+      const value2: User | undefined = queryClient.getQueryData([
+        "users",
+        userId,
+      ]);
+      if (value2) {
+        const shallow = {
+          ...value2,
+          Followers: value2.Followers.filter(
+            (v) => v.id !== session?.user?.email,
+          ),
+          _count: {
+            ...value2._count,
+            Followers: value2._count.Followers - 1,
+          },
+        };
+        queryClient.setQueryData(["users", userId], shallow);
+      }
+    },
+  });
+
+  const unFollowMutation = useMutation({
+    mutationFn: (userId: string) => {
+      return fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/${userId}/follow`,
+        {
+          credentials: "include",
+          method: "delete",
+        },
+      );
+    },
+    onMutate: (userId: string) => {
+      const value: User[] | undefined = queryClient.getQueryData([
+        "users",
+        "followRecommends",
+      ]);
+      if (value) {
+        const index = value.findIndex((v) => v.id === userId);
+        const shallow = [...value];
+        shallow[index] = {
+          ...shallow[index],
+          Followers: shallow[index].Followers.filter(
+            (v) => v.id !== session?.user?.email,
+          ),
+          _count: {
+            ...shallow[index]._count,
+            Followers: shallow[index]._count.Followers - 1,
+          },
+        };
+        queryClient.setQueryData(["users", "followRecommends"], shallow);
+      }
+      const value2: User | undefined = queryClient.getQueryData([
+        "users",
+        userId,
+      ]);
+      if (value2) {
+        const shallow = {
+          ...value2,
+          Followers: value2.Followers.filter(
+            (v) => v.id !== session?.user?.email,
+          ),
+          _count: {
+            ...value2._count,
+            Followers: value2._count.Followers - 1,
+          },
+        };
+        queryClient.setQueryData(["users", userId], shallow);
+      }
+    },
+    onError: (error, userId) => {
+      const value: User[] | undefined = queryClient.getQueryData([
+        "users",
+        "followRecommends",
+      ]);
+      if (value) {
+        const index = value.findIndex((v) => v.id === userId);
+        const shallow = [...value];
+        shallow[index] = {
+          ...shallow[index],
+          Followers: [{ id: session?.user?.email as string }],
+          _count: {
+            ...shallow[index]._count,
+            Followers: shallow[index]._count.Followers + 1,
+          },
+        };
+        queryClient.setQueryData(["users", "followRecommends"], shallow);
+      }
+      const value2: User | undefined = queryClient.getQueryData([
+        "users",
+        userId,
+      ]);
+      if (value2) {
+        const shallow = {
+          ...value2,
+          Followers: [{ id: session?.user?.email as string }],
+          _count: {
+            ...value2._count,
+            Followers: value2._count.Followers + 1,
+          },
+        };
+        queryClient.setQueryData(["users", userId], shallow);
+      }
+    },
   });
 
   if (error) {
@@ -53,23 +225,49 @@ const UserInfo = ({ username }: Props) => {
 
   if (!user) return null;
 
+  const followed = !!user.Followers?.find((v) => v.id === session?.user?.email);
+
+  const onFollow: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (followed) {
+      unFollowMutation.mutate(user.id);
+    } else {
+      followMutation.mutate(user.id);
+    }
+  };
+
   return (
-    <div>
+    <>
       <div className={style.header}>
         <BackButton />
         <h3 className={style.headerTitle}>{user.nickname}</h3>
       </div>
       <div className={style.userZone}>
-        <div className={style.userImage}>
-          <img src={user.image} alt={user.id} />
+        <div className={style.userRow}>
+          <div className={style.userImage}>
+            <img src={user.image} alt={user.id} />
+          </div>
+          <div className={style.userName}>
+            <div>{user.nickname}</div>
+            <div>@{user.id}</div>
+          </div>
+          {user.id !== session?.user?.email && (
+            <button
+              onClick={onFollow}
+              className={cx(style.followButton, followed && style.followed)}
+            >
+              {followed ? "팔로잉" : "팔로우"}
+            </button>
+          )}
         </div>
-        <div className={style.userName}>
-          <div>{user.nickname}</div>
-          <div>@{user.id}</div>
+        <div className={style.userFollower}>
+          <div>{user._count.Followers} 팔로워</div>
+          &nbsp;
+          <div>{user._count.Followings} 팔로우 중</div>
         </div>
-        <button className={style.followButton}>팔로우</button>
       </div>
-    </div>
+    </>
   );
 };
 

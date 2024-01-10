@@ -1,6 +1,10 @@
 "use client";
 
-import { InfiniteData, useSuspenseInfiniteQuery } from "@tanstack/react-query";
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  useSuspenseInfiniteQuery,
+} from "@tanstack/react-query";
 import { getPostRecommends } from "@/app/(afterLogin)/home/_lib/getPostRecommends";
 import Post from "@/app/(afterLogin)/_component/Post";
 import { Post as IPost } from "@/model/Post";
@@ -8,20 +12,19 @@ import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";
 
 const PostRecommends = () => {
-  const { data, fetchNextPage, hasNextPage, isFetching } =
-    useSuspenseInfiniteQuery<
-      IPost[],
-      Object,
-      InfiniteData<IPost[]>,
-      [_1: string, _2: string],
-      number
-    >({
-      queryKey: ["posts", "recommends"],
-      queryFn: getPostRecommends,
-      initialPageParam: 0,
-      getNextPageParam: (lastPage) => lastPage.at(-1)?.postId,
-      staleTime: 60 * 1000, // fresh -> stale, 5분이라는 기준
-    });
+  const { data, fetchNextPage, hasNextPage, isFetching } = useInfiniteQuery<
+    IPost[],
+    Object,
+    InfiniteData<IPost[]>,
+    [_1: string, _2: string],
+    number
+  >({
+    queryKey: ["posts", "recommends"],
+    queryFn: getPostRecommends,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.at(-1)?.postId,
+    staleTime: 60 * 1000, // fresh -> stale, 5분이라는 기준
+  });
 
   const { ref, inView } = useInView({
     threshold: 0,
