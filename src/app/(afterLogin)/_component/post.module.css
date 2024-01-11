@@ -9,7 +9,6 @@
     transition-duration: 0.2s;
     cursor: pointer;
 }
-
 .post:hover {
     background-color: rgba(0, 0, 0, 0.03);
 }
@@ -18,7 +17,6 @@
     display: flex;
     flex-direction: row;
 }
-
 .postReposted {
     display: flex;
     align-items: center;
@@ -27,7 +25,6 @@
     font-size: 13px;
     line-height: 20px;
 }
-
 .postReposted svg {
     fill: rgb(83, 100, 113)
 }
@@ -54,11 +51,9 @@
     top: 0;
     left: 0;
 }
-
 .postShade:hover {
     background-color: rgba(26, 26, 26, 0.15);
 }
-
 .postUserImage img {
     width: 40px;
     height: 40px;
@@ -68,11 +63,9 @@
 .postUserName {
     font-weight: bold;
 }
-
 .postUserNick, .postDate {
     color: rgb(83, 100, 113);
 }
-
 .postDate:hover {
     text-decoration: underline;
 }
@@ -86,7 +79,6 @@
     flex-direction: column;
     width: 100%;
 }
-
 .postUserName:hover {
     text-decoration: underline;
 }
@@ -102,69 +94,56 @@
     width: 100%;
     border-radius: 16px;
 }
-
 .postImageSection.oneImage {
     max-height: 510px;
     background-repeat: no-repeat;
 }
-
 .postImageSection img {
     border-radius: 16px;
     max-height: 510px;
     width: 100%;
 }
-
 .postImageSection.twoImage {
     height: 272px;
     display: flex;
     flex-direction: row;
     gap: 2px;
 }
-
 .postImageSection.twoImage a {
     flex: 1;
 }
-
 .postImageSection.twoImage a:first-child {
     border-top-left-radius: 16px;
     border-bottom-left-radius: 16px;
 }
-
 .postImageSection.twoImage a:last-child {
     border-top-right-radius: 16px;
     border-bottom-right-radius: 16px;
 }
-
 .postImageSection.threeImage {
     height: 272px;
     display: flex;
     flex-direction: row;
     gap: 2px;
 }
-
 .postImageSection.threeImage > a, .postImageSection.threeImage > div {
     flex: 1
 }
-
 .postImageSection.threeImage > div {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
-
 .postImageSection.threeImage > div > a {
     flex: 1;
 }
-
 .postImageSection.threeImage > a:first-child {
     border-top-left-radius: 16px;
     border-bottom-left-radius: 16px;
 }
-
 .postImageSection.threeImage > div > a:first-child {
     border-top-right-radius: 16px;
 }
-
 .postImageSection.threeImage > div > a:last-child {
     border-bottom-right-radius: 16px;
 }
@@ -176,19 +155,15 @@
     grid-template-columns: 1fr 1fr;
     gap: 2px;
 }
-
 .postImageSection.fourImage > a:nth-child(1) {
     border-top-left-radius: 16px;
 }
-
 .postImageSection.fourImage > a:nth-child(2) {
     border-top-right-radius: 16px;
 }
-
 .postImageSection.fourImage > a:nth-child(3) {
     border-bottom-left-radius: 16px;
 }
-
 .postImageSection.fourImage > a:nth-child(4) {
     border-bottom-right-radius: 16px;
 }
@@ -226,7 +201,6 @@
     transition-duration: 0.2s;
     margin-right: 4px;
 }
-
 .actionButtons .count {
     font-size: 13px;
     color: rgb(83, 100, 113);
@@ -244,17 +218,14 @@
     fill: white;
     color: white;
 }
-
 .repostButton.white svg, .repostButton.white .count {
     fill: white;
     color: white;
 }
-
 .heartButton.white svg, .heartButton.white .count {
     fill: white;
     color: white;
 }
-
 .commentButton.commented svg, .commentButton:hover svg {
     fill: rgb(29, 155, 240)
 }

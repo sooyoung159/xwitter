@@ -4,10 +4,20 @@ import SearchForm from "@/app/(afterLogin)/_component/SearchForm";
 import Tab from "@/app/(afterLogin)/search/_component/Tab";
 import Post from "@/app/(afterLogin)/_component/Post";
 import SearchResult from "@/app/(afterLogin)/search/_component/SearchResult";
+import { Metadata } from "next";
 
 interface Props {
   searchParams: { q: string; f?: string; pf?: string };
 }
+
+export const generateMetadata = async ({
+  searchParams,
+}: Props): Promise<Metadata> => {
+  return {
+    title: `${searchParams.q} - 검색 . Z`,
+    description: `${searchParams.q} - 검색`,
+  };
+};
 export default function Search({ searchParams }: Props) {
   return (
     <main className={style.main}>

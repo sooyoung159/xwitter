@@ -7,7 +7,6 @@ import { useSession } from "next-auth/react";
 
 const NavMenu = () => {
   const segment = useSelectedLayoutSegment();
-  console.log(segment);
   const { data: me } = useSession();
 
   return (

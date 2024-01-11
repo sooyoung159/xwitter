@@ -6,7 +6,12 @@ import TabDeciderSuspense from "@/app/(afterLogin)/home/_component/TabDeciderSus
 import { Suspense } from "react";
 import Loading from "@/app/(afterLogin)/home/loading";
 import { auth } from "@/auth";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "홈 / Z",
+  description: "홈 / Z",
+};
 const Home = async () => {
   const session = await auth();
   return (
@@ -19,7 +24,6 @@ const Home = async () => {
           <div>TEST</div>
         </Suspense>
       </TabProvider>
-      <div>tdst</div>
     </main>
   );
 };

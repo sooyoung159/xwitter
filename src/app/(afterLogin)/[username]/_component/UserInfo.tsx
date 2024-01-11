@@ -7,13 +7,14 @@ import { getUser } from "@/app/(afterLogin)/[username]/_lib/getUser";
 import cx from "classnames";
 import { useSession } from "next-auth/react";
 import { MouseEventHandler } from "react";
+import { Session } from "@auth/core/types";
 
 interface Props {
   username: string;
+  session: Session | null;
 }
 
-const UserInfo = ({ username }: Props) => {
-  const { data: session } = useSession();
+const UserInfo = ({ username, session }: Props) => {
   const { data: user, error } = useQuery<
     User,
     Object,

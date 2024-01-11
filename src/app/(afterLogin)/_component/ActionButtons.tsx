@@ -19,13 +19,13 @@ interface Props {
 const ActionButtons = ({ white, post }: Props) => {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
-  const commented = !!post?.Comments.find(
+  const commented = !!post?.Comments?.find(
     (v) => v.userId === session?.user?.email,
   );
-  const reposted = !!post?.Reposts.find(
+  const reposted = !!post?.Reposts?.find(
     (v) => v.userId === session?.user?.email,
   );
-  const liked = !!post?.Hearts.find((v) => v.userId === session?.user?.email);
+  const liked = !!post?.Hearts?.find((v) => v.userId === session?.user?.email);
   const { postId } = post;
 
   const heartMutation = useMutation({
@@ -266,8 +266,32 @@ const ActionButtons = ({ white, post }: Props) => {
       });
     },
   });
-  const onClickComment = () => {};
-  const onClickRepost = () => {};
+  const onClickComment: MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+    const formData = new FormData();
+    formData.append("content", "답글 테스트");
+    fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${post.postId}/comments`,
+      {
+        method: "post",
+        credentials: "include",
+        body: formData,
+      },
+    );
+  };
+  const onClickRepost: MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation();
+    const formData = new FormData();
+    formData.append("content", "재게시 테스트");
+    fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${post.postId}/reposts`,
+      {
+        method: "post",
+        credentials: "include",
+        body: formData,
+      },
+    );
+  };
   const onClickHeart: MouseEventHandler<HTMLButtonElement> = (e) => {
     e.stopPropagation();
     if (liked) {
