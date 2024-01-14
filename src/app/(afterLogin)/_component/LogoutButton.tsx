@@ -3,8 +3,13 @@
 import style from "./logoutButton.module.css";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Session } from "@auth/core/types";
 
-const LogoutButton = () => {
+interface Props {
+  me: Session;
+}
+
+const LogoutButton = ({ me }: Props) => {
   // const me = {
   //   // 임시로 내 정보 있는것처럼
   //   id: "zerohch0",
@@ -12,7 +17,7 @@ const LogoutButton = () => {
   //   image: "/5Udwvqim.jpg",
   // };
 
-  const { data: me } = useSession();
+  // const { data: me } = useSession();
   const router = useRouter();
 
   const onLogout = () => {

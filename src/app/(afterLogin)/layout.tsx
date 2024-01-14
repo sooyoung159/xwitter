@@ -39,7 +39,7 @@ const AfterLoginLayout = async ({ children, modal }: Props) => {
                     게시하기
                   </Link>
                 </nav>
-                <LogoutButton />
+                <LogoutButton me={session} />
               </>
             )}
           </div>
