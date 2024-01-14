@@ -26,6 +26,7 @@ const LogoutButton = ({ me }: Props) => {
         method: "post",
         credentials: "include",
       });
+      router.refresh();
       router.replace("/");
     });
   };
