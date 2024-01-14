@@ -1,13 +1,13 @@
 "use client";
 
 import style from "./logoutButton.module.css";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Session } from "@auth/core/types";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
-  me: Session;
+  me: Session | null;
 }
 
 const LogoutButton = ({ me }: Props) => {
@@ -30,16 +30,18 @@ const LogoutButton = ({ me }: Props) => {
     });
   };
 
-  if (!me?.user) return null;
+  if (!me?.user) {
+    return null;
+  }
 
   return (
     <button className={style.logOutButton} onClick={onLogout}>
       <div className={style.logOutUserImage}>
-        <img src={me?.user.image!} alt={me.user.id} />
+        <img src={me.user?.image as string} alt={me.user?.email as string} />
       </div>
       <div className={style.logOutUserName}>
-        <div>{me.user.name}</div>
-        <div>@{me.user.id}</div>
+        <div>{me.user?.name}</div>
+        <div>@{me.user?.email}</div>
       </div>
     </button>
   );
