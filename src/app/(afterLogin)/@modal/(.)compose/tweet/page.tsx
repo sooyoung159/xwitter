@@ -1,22 +1,227 @@
 "use client";
 
 import style from "./modal.module.css";
-import { useRef, useState } from "react";
+import {
+  ChangeEventHandler,
+  FormEvent,
+  FormEventHandler,
+  useRef,
+  useState,
+} from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import TextareaAutosize from "react-textarea-autosize";
+import {
+  InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { Post } from "@/model/Post";
+import { useModalStore } from "@/store/modal";
+import { ro } from "@faker-js/faker";
+import Link from "next/link";
 
 const TweetModal = () => {
-  const [content, setContent] = useState();
+  const [content, setContent] = useState("");
   const imageRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const onSubmit = () => {};
+  const [preview, setPreview] = useState<
+    Array<{
+      dataUrl: string;
+      file: File;
+    } | null>
+  >([]);
+  const modalStore = useModalStore();
+  const queryClient = useQueryClient();
+
+  const { data: me } = useSession();
+
+  const parent = modalStore.data;
+
+  const mutation = useMutation({
+    mutationFn: async (e: FormEvent) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("content", content);
+      preview.forEach((data) => {
+        data && formData.append("images", data?.file);
+      });
+
+      return fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/posts`, {
+        method: "post",
+        credentials: "include",
+        body: formData,
+      });
+    },
+    onSuccess: async (response, variable) => {
+      const newPost = await response.json();
+      setContent("");
+      setPreview([]);
+      const queryCache = queryClient.getQueryCache();
+      const queryKeys = queryCache.getAll().map((cache) => cache.queryKey);
+
+      queryKeys.forEach((queryKey) => {
+        if (queryKey[0] === "post") {
+          const value: Post | InfiniteData<Post[]> | undefined =
+            queryClient.getQueryData(queryKey);
+          if (value && "pages" in value) {
+            const obj = value.pages
+              .flat()
+              .find((v) => v.postId === parent?.postId);
+            if (obj) {
+              const pageIndex = value.pages.findIndex((page) =>
+                page.includes(obj),
+              );
+              const index = value.pages[pageIndex].findIndex(
+                (v) => v.postId === parent?.postId,
+              );
+              const shallow = {
+                ...value,
+                pages: [...value.pages],
+              };
+              shallow.pages[0] = [...shallow.pages[0]];
+              shallow.pages[0].unshift(newPost);
+              queryClient.setQueryData(queryKey, shallow);
+            }
+          }
+        }
+      });
+      await queryClient.invalidateQueries({ queryKey: ["trends"] });
+    },
+    onError: (err) => {
+      console.log(err);
+    },
+    onSettled: () => {
+      router.back();
+    },
+  });
+
+  const comment = useMutation({
+    mutationFn: async (e: FormEvent) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("content", content);
+      preview.forEach((data) => {
+        data && formData.append("images", data?.file);
+      });
+
+      return fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/posts/${parent?.postId}/comments`,
+        {
+          method: "post",
+          credentials: "include",
+          body: formData,
+        },
+      );
+    },
+    onSuccess: async (response, variable) => {
+      const newPost = await response.json();
+      setContent("");
+      setPreview([]);
+      const queryCache = queryClient.getQueryCache();
+      const queryKeys = queryCache.getAll().map((cache) => cache.queryKey);
+
+      queryKeys.forEach((queryKey) => {
+        if (queryKey[0] === "post") {
+          const value: Post | InfiniteData<Post[]> | undefined =
+            queryClient.getQueryData(queryKey);
+          if (value && "pages" in value) {
+            const obj = value.pages
+              .flat()
+              .find((v) => v.postId === parent?.postId);
+            if (obj) {
+              const pageIndex = value.pages.findIndex((page) =>
+                page.includes(obj),
+              );
+              const index = value.pages[pageIndex].findIndex(
+                (v) => v.postId === parent?.postId,
+              );
+              const shallow = { ...value };
+              value.pages = { ...value.pages };
+              value.pages[pageIndex] = [...value.pages[pageIndex]];
+              shallow.pages[pageIndex][index] = {
+                ...shallow.pages[pageIndex][index],
+                Comments: [{ userId: me?.user?.email as string }],
+                _count: {
+                  ...shallow.pages[pageIndex][index]._count,
+                  Comments: shallow.pages[pageIndex][index]._count.Comments + 1,
+                },
+              };
+              shallow.pages[0].unshift(newPost); // 새답글 추가
+              queryClient.setQueryData(queryKey, shallow);
+            }
+          } else if (value) {
+            if (value.postId === parent?.postId) {
+              const shallow = {
+                ...value,
+                Comments: [{ userId: me?.user?.email as string }],
+                _count: {
+                  ...value._count,
+                  Comments: value._count.Comments + 1,
+                },
+              };
+              queryClient.setQueryData(queryKey, shallow);
+            }
+          }
+        }
+      });
+      await queryClient.invalidateQueries({ queryKey: ["trends"] });
+    },
+    onError: (err) => {
+      console.log(err);
+    },
+    onSettled: () => {
+      modalStore.reset();
+      router.back();
+    },
+  });
+  const onChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
+    setContent(e.target.value);
+  };
+
+  const onClickButton = () => {
+    imageRef.current?.click();
+  };
+
+  const onRemoveImage = (index: number) => () => {
+    setPreview((prevPreview) => {
+      const prev = [...prevPreview];
+      prev[index] = null;
+      return prev;
+    });
+  };
+
+  const onUpload: ChangeEventHandler<HTMLInputElement> = (e) => {
+    e.preventDefault();
+    if (e.target.files) {
+      Array.from(e.target.files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview((prevPreview) => {
+            const prev = [...prevPreview];
+            prev[index] = {
+              dataUrl: reader.result as string,
+              file,
+            };
+            return prev;
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+    if (modalStore.mode === "new") {
+      mutation.mutate(e);
+    } else {
+      comment.mutate(e);
+    }
+  };
   const onClickClose = () => {
     router.back();
   };
-  const onClickButton = () => {};
-  const onChangeContent = () => {};
 
-  const { data: me } = useSession();
   return (
     <div className={style.modalBackground}>
       <div className={style.modal}>
@@ -33,6 +238,27 @@ const TweetModal = () => {
           </svg>
         </button>
         <form className={style.modalForm} onSubmit={onSubmit}>
+          {modalStore.mode === "comment" && parent && (
+            <div className={style.modalOriginal}>
+              <div className={style.postUserSection}>
+                <div className={style.postUserImage}>
+                  <img src={parent.User.image} alt={parent.User.id} />
+                </div>
+              </div>
+              <div>
+                {parent.content}
+                <div>
+                  <Link
+                    href={`/${parent.User.id}`}
+                    style={{ color: "rgb(29, 155, 240)" }}
+                  >
+                    @{parent.User.id}
+                  </Link>{" "}
+                  님에게 보내는 답글
+                </div>
+              </div>
+            </div>
+          )}
           <div className={style.modalBody}>
             <div className={style.postUserSection}>
               <div className={style.postUserImage}>
@@ -43,12 +269,38 @@ const TweetModal = () => {
               </div>
             </div>
             <div className={style.inputDiv}>
-              <textarea
+              <TextareaAutosize
                 className={style.input}
-                placeholder="무슨 일이 일어나고 있나요?"
+                placeholder={
+                  modalStore.mode === "comment"
+                    ? "답글 게시하기"
+                    : "무슨 일이 일어나고 있나요?"
+                }
                 value={content}
-                onChange={onChangeContent}
+                onChange={onChange}
               />
+              <div style={{ display: "flex" }}>
+                {preview.map(
+                  (v, index) =>
+                    v && (
+                      <div
+                        key={index}
+                        style={{ flex: 1 }}
+                        onClick={onRemoveImage(index)}
+                      >
+                        <img
+                          src={v.dataUrl}
+                          alt="미리보기"
+                          style={{
+                            width: "100%",
+                            objectFit: "contain",
+                            maxHeight: 100,
+                          }}
+                        />
+                      </div>
+                    ),
+                )}
+              </div>
             </div>
           </div>
           <div className={style.modalFooter}>
@@ -61,6 +313,7 @@ const TweetModal = () => {
                   multiple
                   hidden
                   ref={imageRef}
+                  onChange={onUpload}
                 />
                 <button
                   className={style.uploadButton}

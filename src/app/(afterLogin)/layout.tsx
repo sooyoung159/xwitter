@@ -21,32 +21,31 @@ const AfterLoginLayout = async ({ children, modal }: Props) => {
   const session = await auth();
   return (
     <div className={style.container}>
+      <header className={style.leftSectionWrapper}>
+        <section className={style.leftSection}>
+          <div className={style.leftSectionFixed}>
+            <Link className={style.logo} href={session?.user ? "/home" : "/"}>
+              <div className={style.logoPill}>
+                <Image src={ZLogo} alt="z.com로고" width={40} height={40} />
+              </div>
+            </Link>
+            {session?.user && (
+              <>
+                <nav>
+                  <ul>
+                    <NavMenu />
+                  </ul>
+                  <Link href="/compose/tweet" className={style.postButton}>
+                    게시하기
+                  </Link>
+                </nav>
+                <LogoutButton />
+              </>
+            )}
+          </div>
+        </section>
+      </header>
       <RQProvider>
-        <header className={style.leftSectionWrapper}>
-          <section className={style.leftSection}>
-            <div className={style.leftSectionFixed}>
-              <Link className={style.logo} href={session?.user ? "/home" : "/"}>
-                <div className={style.logoPill}>
-                  <Image src={ZLogo} alt="z.com로고" width={40} height={40} />
-                </div>
-              </Link>
-              {session?.user && (
-                <>
-                  <nav>
-                    <ul>
-                      <NavMenu />
-                    </ul>
-                    <Link href="/compose/tweet" className={style.postButton}>
-                      게시하기
-                    </Link>
-                  </nav>
-                  <LogoutButton me={session} />
-                </>
-              )}
-            </div>
-          </section>
-        </header>
-
         <div className={style.rightSectionWrapper}>
           <div className={style.rightSectionInner}>
             <main className={style.main}>{children}</main>

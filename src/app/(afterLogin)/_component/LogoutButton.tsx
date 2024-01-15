@@ -3,31 +3,21 @@
 import style from "./logoutButton.module.css";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Session } from "@auth/core/types";
-import { useQueryClient } from "@tanstack/react-query";
 
-interface Props {
-  me: Session;
-}
+const LogoutButton = () => {
+  // const me = {
+  //   // 임시로 내 정보 있는것처럼
+  //   id: "zerohch0",
+  //   nickname: "제로초",
+  //   image: "/5Udwvqim.jpg",
+  // };
 
-const LogoutButton = ({ me }: Props) => {
+  const { data: me } = useSession();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const onLogout = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["posts"],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["users"],
-    });
-    signOut({ redirect: false }).then(() => {
-      fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logout`, {
-        method: "post",
-        credentials: "include",
-      });
-      router.replace("/");
-    });
+    signOut({ redirect: false });
+    router.replace("/");
   };
 
   if (!me?.user) return null;
@@ -35,7 +25,7 @@ const LogoutButton = ({ me }: Props) => {
   return (
     <button className={style.logOutButton} onClick={onLogout}>
       <div className={style.logOutUserImage}>
-        <img src={me?.user.image!} alt={me.user.id} />
+        <img src={me.user.image!} alt={me.user.id} />
       </div>
       <div className={style.logOutUserName}>
         <div>{me.user.name}</div>

@@ -42,7 +42,7 @@ const PostRecommends = () => {
       {data?.pages.map((page, i) => (
         <div key={i}>
           {page.map((post) => {
-            return <Post key={post.postId} post={post} />;
+            return <Post key={post.postId ? post.postId : i} post={post} />;
           })}
         </div>
       ))}
