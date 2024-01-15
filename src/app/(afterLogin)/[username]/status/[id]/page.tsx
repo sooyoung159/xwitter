@@ -32,6 +32,24 @@ export const generateMetadata = async ({ params }: Props) => {
   return {
     title: `Z에서 ${user.nickname} 님 : ${post.content}`,
     description: post.content,
+    openGraph: {
+      title: `${user.nickname} (${user.id}) / Z`,
+      description: `${user.nickname} (${user.id}) 프로필`,
+      images:
+        post.Images.length > 0
+          ? post.Images.map((v) => ({
+              url: `http://localhost:3000${v.link}`,
+              width: 400,
+              height: 400,
+            }))
+          : [
+              {
+                url: `http://localhost:3000${user.image}`,
+                width: 400,
+                height: 400,
+              },
+            ],
+    },
   };
 };
 
