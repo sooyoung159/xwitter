@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import style from "./trend.module.css";
 import { Hashtag } from "@/model/Hashtag";

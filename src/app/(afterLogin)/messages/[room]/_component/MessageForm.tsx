@@ -2,18 +2,95 @@
 
 import style from "./messageForm.module.css";
 import TextareaAutosize from "react-textarea-autosize";
-import { ChangeEventHandler, FormEventHandler, useState } from "react";
+import {
+  ChangeEventHandler,
+  FormEventHandler,
+  KeyboardEventHandler,
+  useEffect,
+  useState,
+} from "react";
+import { useSession } from "next-auth/react";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { Message } from "@/model/Message";
+import { useSocket } from "@/app/(afterLogin)/messages/[room]/_lib/useSocket";
+import { useMessageStore } from "@/store/message";
 
-const MessageForm = () => {
+interface Props {
+  id: string;
+}
+
+export default function MessageForm({ id }: Props) {
   const [content, setContent] = useState("");
+  const setGoDown = useMessageStore().setGoDown;
+  const [socket] = useSocket();
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
   const onChangeContent: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     setContent(e.target.value);
   };
-
-  const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    //soket.io
+  const onSubmit = () => {
+    if (!session?.user?.email) {
+      return;
+    }
+    const ids = [session?.user?.email, id];
+    ids.sort();
+    // socket.io
+    socket?.emit("sendMessage", {
+      senderId: session?.user?.email,
+      receiverId: id,
+      content,
+    });
+    // 리액트 쿼리 데이터에 추가
+    const exMessages = queryClient.getQueryData([
+      "rooms",
+      {
+        senderId: session?.user?.email,
+        receiverId: id,
+      },
+      "messages",
+    ]) as InfiniteData<Message[]>;
+    if (exMessages && typeof exMessages === "object") {
+      const newMessages = {
+        ...exMessages,
+        pages: [...exMessages.pages],
+      };
+      const lastPage = newMessages.pages.at(-1);
+      const newLastPage = lastPage ? [...lastPage] : [];
+      let lastMessageId = lastPage?.at(-1)?.messageId;
+      newLastPage.push({
+        senderId: session.user.email,
+        receiverId: id,
+        content,
+        room: ids.join("-"),
+        messageId: lastMessageId ? lastMessageId + 1 : 1,
+        createdAt: new Date(),
+      });
+      newMessages.pages[newMessages.pages.length - 1] = newLastPage;
+      queryClient.setQueryData(
+        [
+          "rooms",
+          { senderId: session?.user?.email, receiverId: id },
+          "messages",
+        ],
+        newMessages,
+      );
+      setGoDown(true);
+    }
     setContent("");
+  };
+
+  const onEnter: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    if (e.key === "Enter") {
+      if (e.shiftKey) {
+        return;
+      }
+      e.preventDefault();
+      if (!content?.trim()) {
+        return;
+      }
+      onSubmit();
+      setContent("");
+    }
   };
 
   return (
@@ -22,10 +99,15 @@ const MessageForm = () => {
         className={style.form}
         onSubmit={(e) => {
           e.preventDefault();
-          // onSubmit()
+          onSubmit();
         }}
       >
-        {/*<TextareaAutosize value={content} onChange={onChangeContent} onKeyDown={onEnter} placeholder="새 쪽지 작성하기"/>*/}
+        <TextareaAutosize
+          value={content}
+          onChange={onChangeContent}
+          onKeyDown={onEnter}
+          placeholder="새 쪽지 작성하기"
+        />
         <button
           className={style.submitButton}
           type="submit"
@@ -45,6 +127,4 @@ const MessageForm = () => {
       </form>
     </div>
   );
-};
-
-export default MessageForm;
+}

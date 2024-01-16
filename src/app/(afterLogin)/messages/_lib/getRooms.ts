@@ -14,7 +14,10 @@ export const getRooms = async (id: string) => {
     },
   );
 
-  if (!res.ok) throw new Error("Failed fetch data");
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to fetch data");
+  }
 
   return res.json() as Promise<Room[]>;
 };

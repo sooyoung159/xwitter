@@ -32,7 +32,6 @@
     border-color: rgb(239, 243, 244);
     cursor: pointer;
 }
-
 .room:hover {
     background-color: rgba(0, 0, 0, 0.03);
 }
@@ -51,7 +50,6 @@
     font-size: 15px;
 
 }
-
 .roomChatInfo b {
     color: black;
 }
